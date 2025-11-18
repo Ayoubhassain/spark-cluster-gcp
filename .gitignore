@@ -5,7 +5,7 @@
 .terraform.lock.hcl
 *.tfvars
 
-# GCP Credentials (NEVER COMMIT!)
+# GCP Credentials
 gcp-credentials.json
 *.json
 !package.json
