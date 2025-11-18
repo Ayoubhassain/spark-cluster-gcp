@@ -1,2 +1,15 @@
-# spark-gcp-automation
-Automateing Apache Spark cluster deployment on GCP using Terraform and Ansible
+# Spark Cluster Automation on GCP
+
+Infrastructure automation project for Big Data course.
+
+## Goal
+Automate Apache Spark cluster deployment using Infrastructure as Code.
+
+## Technologies
+- Terraform
+- Ansible
+- GCP
+- Apache Spark
+
+## Status
+🚧 Work in progress
