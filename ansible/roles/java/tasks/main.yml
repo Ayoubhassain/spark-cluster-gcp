@@ -1,0 +1,39 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+  tags:
+    - java
+
+- name: Install OpenJDK 11
+  ansible.builtin.apt:
+    name: openjdk-11-jdk
+    state: present
+  become: yes
+  tags:
+    - java
+
+- name: Set JAVA_HOME environment variable
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: "^JAVA_HOME="
+    line: 'JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"'
+    state: present
+  become: yes
+  tags:
+    - java
+
+- name: Verify Java installation
+  ansible.builtin.command: java -version
+  register: java_version
+  changed_when: false
+  tags:
+    - java
+
+- name: Display Java version
+  ansible.builtin.debug:
+    msg: "Java installed: {{ java_version.stderr_lines[0] }}"
+  tags:
+    - java

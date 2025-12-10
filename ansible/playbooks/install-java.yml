@@ -1,0 +1,7 @@
+---
+- name: Install Java on Spark Cluster
+  hosts: cluster
+  gather_facts: yes
+
+  roles:
+    - java
