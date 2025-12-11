@@ -1,0 +1,8 @@
+---
+# Playbook: Install Apache Spark on all cluster nodes
+- name: Install Spark Common Components
+  hosts: cluster
+  gather_facts: yes
+  
+  roles:
+    - spark-common

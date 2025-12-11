@@ -1,0 +1,114 @@
+---
+
+- name: Create Spark user
+  ansible.builtin.user:
+    name: "{{ spark_user }}"
+    system: yes
+    shell: /bin/bash
+    create_home: yes
+    home: /home/{{ spark_user }}
+  become: yes
+  tags:
+    - spark
+
+- name: Create Spark installation directory
+  ansible.builtin.file:
+    path: "{{ spark_install_dir }}"
+    state: directory
+    mode: '0755'
+  become: yes
+  tags:
+    - spark
+
+- name: Check if Spark is already installed
+  ansible.builtin.stat:
+    path: "{{ spark_home }}/bin/spark-submit"
+  register: spark_installed
+  tags:
+    - spark
+
+- name: Download Spark
+  ansible.builtin.get_url:
+    url: "{{ spark_download_url }}"
+    dest: "/tmp/spark-{{ spark_version }}-bin-hadoop{{ spark_hadoop_version }}.tgz"
+    mode: '0644'
+  when: not spark_installed.stat.exists
+  become: yes
+  tags:
+    - spark
+
+- name: Extract Spark archive
+  ansible.builtin.unarchive:
+    src: "/tmp/spark-{{ spark_version }}-bin-hadoop{{ spark_hadoop_version }}.tgz"
+    dest: "{{ spark_install_dir }}"
+    remote_src: yes
+    creates: "{{ spark_install_dir }}/spark-{{ spark_version }}-bin-hadoop{{ spark_hadoop_version }}"
+  when: not spark_installed.stat.exists
+  become: yes
+  tags:
+    - spark
+
+- name: Create Spark symlink
+  ansible.builtin.file:
+    src: "{{ spark_install_dir }}/spark-{{ spark_version }}-bin-hadoop{{ spark_hadoop_version }}"
+    dest: "{{ spark_home }}"
+    state: link
+  become: yes
+  tags:
+    - spark
+
+- name: Set ownership of Spark directory
+  ansible.builtin.file:
+    path: "{{ spark_install_dir }}/spark-{{ spark_version }}-bin-hadoop{{ spark_hadoop_version }}"
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+    recurse: yes
+  become: yes
+  tags:
+    - spark
+
+- name: Add SPARK_HOME to system environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^SPARK_HOME='
+    line: 'SPARK_HOME="{{ spark_home }}"'
+    state: present
+  become: yes
+  tags:
+    - spark
+
+- name: Add Spark bin to PATH
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PATH='
+    line: 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:{{ spark_home }}/bin:{{ spark_home }}/sbin"'
+    state: present
+  become: yes
+  tags:
+    - spark
+
+- name: Create Spark logs directory
+  ansible.builtin.file:
+    path: "{{ spark_home }}/logs"
+    state: directory
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+    mode: '0755'
+  become: yes
+  tags:
+    - spark
+
+- name: Verify Spark installation
+  ansible.builtin.command: "{{ spark_home }}/bin/spark-submit --version"
+  register: spark_version_output
+  changed_when: false
+  become: yes
+  become_user: "{{ spark_user }}"
+  tags:
+    - spark
+
+- name: Display Spark version
+  ansible.builtin.debug:
+    msg: "Spark installed successfully: {{ spark_version_output.stderr_lines[0] | default('Version info not available') }}"
+  tags:
+    - spark
