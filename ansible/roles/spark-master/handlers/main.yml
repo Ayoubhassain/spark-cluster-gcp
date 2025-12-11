@@ -1,0 +1,8 @@
+---
+# Handlers for Spark Master role
+
+- name: restart spark-master
+  ansible.builtin.systemd:
+    name: spark-master
+    state: restarted
+  become: yes

@@ -1,0 +1,16 @@
+---
+# Playbook: Configure Spark Cluster Services
+
+- name: Configure Spark Master
+  hosts: master
+  gather_facts: yes
+  
+  roles:
+    - spark-master
+
+- name: Configure Spark Workers
+  hosts: workers
+  gather_facts: yes
+  
+  roles:
+    - spark-worker

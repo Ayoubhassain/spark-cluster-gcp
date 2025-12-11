@@ -1,0 +1,75 @@
+---
+# Spark Master Role - Configuration Tasks
+# Configures and starts Spark Master service
+
+- name: Create Spark PID directory
+  ansible.builtin.file:
+    path: /var/run/spark
+    state: directory
+    owner: spark
+    group: spark
+    mode: '0755'
+  become: yes
+  tags:
+    - spark-master
+
+- name: Deploy Spark environment configuration
+  ansible.builtin.template:
+    src: spark-env.sh.j2
+    dest: /opt/spark/conf/spark-env.sh
+    owner: spark
+    group: spark
+    mode: '0755'
+  become: yes
+  notify: restart spark-master
+  tags:
+    - spark-master
+
+- name: Deploy Spark Master systemd service
+  ansible.builtin.template:
+    src: spark-master.service.j2
+    dest: /etc/systemd/system/spark-master.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart spark-master
+  tags:
+    - spark-master
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: yes
+  tags:
+    - spark-master
+
+- name: Enable Spark Master service
+  ansible.builtin.systemd:
+    name: spark-master
+    enabled: yes
+  become: yes
+  tags:
+    - spark-master
+
+- name: Start Spark Master service
+  ansible.builtin.systemd:
+    name: spark-master
+    state: started
+  become: yes
+  tags:
+    - spark-master
+
+- name: Wait for Master to start
+  ansible.builtin.wait_for:
+    port: 8080
+    delay: 5
+    timeout: 60
+  tags:
+    - spark-master
+
+- name: Display Master URL
+  ansible.builtin.debug:
+    msg: "Spark Master UI: http://{{ ansible_default_ipv4.address }}:8080"
+  tags:
+    - spark-master

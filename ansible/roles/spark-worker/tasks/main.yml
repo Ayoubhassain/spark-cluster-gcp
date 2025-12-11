@@ -1,0 +1,75 @@
+---
+# Spark Worker Role - Configuration Tasks
+# Configures and starts Spark Worker service
+
+- name: Create Spark PID directory
+  ansible.builtin.file:
+    path: /var/run/spark
+    state: directory
+    owner: spark
+    group: spark
+    mode: '0755'
+  become: yes
+  tags:
+    - spark-worker
+
+- name: Deploy Spark environment configuration
+  ansible.builtin.template:
+    src: spark-env.sh.j2
+    dest: /opt/spark/conf/spark-env.sh
+    owner: spark
+    group: spark
+    mode: '0755'
+  become: yes
+  notify: restart spark-worker
+  tags:
+    - spark-worker
+
+- name: Deploy Spark Worker systemd service
+  ansible.builtin.template:
+    src: spark-worker.service.j2
+    dest: /etc/systemd/system/spark-worker.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart spark-worker
+  tags:
+    - spark-worker
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: yes
+  tags:
+    - spark-worker
+
+- name: Enable Spark Worker service
+  ansible.builtin.systemd:
+    name: spark-worker
+    enabled: yes
+  become: yes
+  tags:
+    - spark-worker
+
+- name: Start Spark Worker service
+  ansible.builtin.systemd:
+    name: spark-worker
+    state: started
+  become: yes
+  tags:
+    - spark-worker
+
+- name: Wait for Worker to start
+  ansible.builtin.wait_for:
+    port: 8081
+    delay: 5
+    timeout: 60
+  tags:
+    - spark-worker
+
+- name: Display Worker URL
+  ansible.builtin.debug:
+    msg: "Spark Worker UI: http://{{ ansible_default_ipv4.address }}:8081"
+  tags:
+    - spark-worker

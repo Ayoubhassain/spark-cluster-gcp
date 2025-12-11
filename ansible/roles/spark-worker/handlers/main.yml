@@ -1,0 +1,8 @@
+---
+# Handlers for Spark Worker role
+
+- name: restart spark-worker
+  ansible.builtin.systemd:
+    name: spark-worker
+    state: restarted
+  become: yes

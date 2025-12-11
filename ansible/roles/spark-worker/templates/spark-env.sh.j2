@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Spark Worker Configuration
+
+# Java Home
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+# Spark Home
+export SPARK_HOME=/opt/spark
+
+# Master URL - workers connect here
+export SPARK_MASTER_URL=spark://{{ hostvars[groups['master'][0]]['ansible_default_ipv4']['address'] }}:7077
+
+# Worker Configuration
+export SPARK_WORKER_CORES=1
+export SPARK_WORKER_MEMORY=1g
+export SPARK_WORKER_PORT=7078
+export SPARK_WORKER_WEBUI_PORT=8081
+
+# Log Configuration
+export SPARK_LOG_DIR=/opt/spark/logs
+export SPARK_PID_DIR=/var/run/spark
