@@ -10,14 +10,10 @@ fi
 CORES=$1
 MASTER_URL="spark://spark-master:7077"
 
-# 2. Path: Point to the shared /mnt/spark-data
-INPUT_DIR="file:///mnt/spark-data/*.txt"
-
-# 3. Output: Write to /mnt/spark-data so the Edge Node can see the results
+INPUT_DIR="file:///mnt/spark-data/big_test.txt"
 OUTPUT_DIR="/mnt/spark-data/wordcount_bench_${CORES}cores"
 # -----------------------
 
-# JAR Configuration
 JAR_PATH="/home/spark/wordcount-java/target/wordcount-1.0-SNAPSHOT.jar"
 MAIN_CLASS="org.spark.example.JavaWordCount"
 
@@ -25,7 +21,6 @@ echo "--------------------------------------------------"
 echo "RUNNING JAVA BENCHMARK WITH $CORES CORES"
 echo "--------------------------------------------------"
 
-# Clean old output from the shared storage
 rm -rf $OUTPUT_DIR 2>/dev/null || true
 
 START_TIME=$(date +%s)

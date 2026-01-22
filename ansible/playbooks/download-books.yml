@@ -1,11 +1,11 @@
----
-- name: Download Classic Books to Cluster
+- name: Download and Scale Data
   hosts: storage
   become: yes
+
   tasks:
-    - name: Create books directory
+    - name: Ensure data directory exists
       ansible.builtin.file:
-        path: /tmp/books
+        path: /data/books
         state: directory
         mode: "0777"
 
@@ -55,3 +55,22 @@
             name: "dorian.txt",
             url: "https://www.gutenberg.org/files/174/174-0.txt",
           }
+
+    - name: Create 300MB BigData file
+      ansible.builtin.shell: |
+        # 1. Clean up any old files
+        rm -f /data/books/big_test.txt /tmp/combining_books.txt
+
+        # 2. Combine the original 10 books into a temporary file first
+        cat /data/books/alice.txt /data/books/sherlock.txt /data/books/pride.txt \
+            /data/books/dracula.txt /data/books/frankenstein.txt /data/books/moby.txt \
+            /data/books/ulysses.txt /data/books/huckfinn.txt /data/books/gatsby.txt \
+            /data/books/dorian.txt > /tmp/combining_books.txt
+
+        # 3. Duplicate that combined file 50 times into the final destination
+        for i in {1..50}; do cat /tmp/combining_books.txt >> /data/books/big_test.txt; done
+
+        # 4. Cleanup
+        rm /tmp/combining_books.txt
+      args:
+        executable: /bin/bash
