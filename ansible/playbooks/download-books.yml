@@ -1,0 +1,57 @@
+---
+- name: Download Classic Books to Cluster
+  hosts: storage
+  become: yes
+  tasks:
+    - name: Create books directory
+      ansible.builtin.file:
+        path: /tmp/books
+        state: directory
+        mode: "0777"
+
+    - name: Download Books
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "/data/books/{{ item.name }}"
+        mode: "0644"
+      loop:
+        - {
+            name: "alice.txt",
+            url: "https://www.gutenberg.org/files/11/11-0.txt",
+          }
+        - {
+            name: "sherlock.txt",
+            url: "https://www.gutenberg.org/files/1661/1661-0.txt",
+          }
+        - {
+            name: "pride.txt",
+            url: "https://www.gutenberg.org/files/1342/1342-0.txt",
+          }
+        - {
+            name: "dracula.txt",
+            url: "https://www.gutenberg.org/files/345/345-0.txt",
+          }
+        - {
+            name: "frankenstein.txt",
+            url: "https://www.gutenberg.org/files/84/84-0.txt",
+          }
+        - {
+            name: "moby.txt",
+            url: "https://www.gutenberg.org/files/2701/2701-0.txt",
+          }
+        - {
+            name: "ulysses.txt",
+            url: "https://www.gutenberg.org/files/4300/4300-0.txt",
+          }
+        - {
+            name: "huckfinn.txt",
+            url: "https://www.gutenberg.org/files/76/76-0.txt",
+          }
+        - {
+            name: "gatsby.txt",
+            url: "https://www.gutenberg.org/files/64317/64317-0.txt",
+          }
+        - {
+            name: "dorian.txt",
+            url: "https://www.gutenberg.org/files/174/174-0.txt",
+          }

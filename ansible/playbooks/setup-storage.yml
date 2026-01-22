@@ -1,0 +1,12 @@
+---
+- name: Configure NFS Server (Storage Node)
+  hosts: storage
+  gather_facts: yes
+  roles:
+    - nfs-server
+
+- name: Configure NFS Clients (Cluster)
+  hosts: master, workers, edge
+  gather_facts: yes
+  roles:
+    - nfs-client

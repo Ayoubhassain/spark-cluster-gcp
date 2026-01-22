@@ -4,6 +4,12 @@ variable "project_id" {
   type        = string
 }
 
+variable "worker_count" {
+  description = "Number of worker nodes"
+  type        = number
+  default     = 2
+}
+
 variable "my_ip" {
   description = "Personal IP (only IP that can ssh into the master node)"
   type = string
@@ -18,7 +24,7 @@ variable "region" {
 variable "zone" {
   description = "GCP zone"
   type        = string
-  default     = "europe-west9-a"
+  default     = "europe-west9-b"
 }
 
 variable "network_name" {
@@ -39,3 +45,8 @@ variable "machine_type" {
   default     = "e2-medium"
 }
 
+variable "ansible_user" {
+  description = "SSH user for Ansible (from GCP OS Login)"
+  type        = string
+  default     = "mpsi_mekkaoui_ossama_moussa_gmai"
+}

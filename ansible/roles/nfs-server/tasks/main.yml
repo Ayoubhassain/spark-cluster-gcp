@@ -1,0 +1,31 @@
+---
+- name: Install NFS Kernel Server
+  ansible.builtin.apt:
+    name: nfs-kernel-server
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create shared data directory
+  ansible.builtin.file:
+    path: /data/books
+    state: directory
+    owner: spark
+    group: spark
+    mode: "0777"
+  become: yes
+
+- name: Configure NFS exports
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    line: "/data/books *(rw,sync,no_subtree_check)"
+    state: present
+  become: yes
+  notify: restart nfs
+
+- name: Start and Enable NFS Service
+  ansible.builtin.systemd:
+    name: nfs-kernel-server
+    state: started
+    enabled: yes
+  become: yes

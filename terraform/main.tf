@@ -28,6 +28,9 @@ resource "google_compute_subnetwork" "spark_subnet" {
 }
 
 # FIREWALL: SSH Access
+# terraform/main.tf
+
+# FIREWALL: SSH Access
 resource "google_compute_firewall" "allow_ssh" {
   name    = "${var.network_name}-allow-ssh"
   network = google_compute_network.spark_network.name
@@ -38,8 +41,8 @@ resource "google_compute_firewall" "allow_ssh" {
   }
 
   source_ranges = [var.my_ip]
-  target_tags   = ["spark"]
 
+  target_tags = ["edge-node"] 
 }
 
 # ============================================
@@ -121,9 +124,10 @@ resource "google_compute_instance" "spark_master" {
 
 }
 
-# Worker1 Instance
-resource "google_compute_instance" "worker_1" {
-  name         = "spark-worker-1"
+# Worker Instances (Dynamic Scaling)
+resource "google_compute_instance" "spark_worker" {
+  count        = var.worker_count
+  name         = "spark-worker-${count.index + 1}"
   machine_type = var.machine_type
   zone         = var.zone
 
@@ -136,9 +140,7 @@ resource "google_compute_instance" "worker_1" {
 
   network_interface {
     subnetwork = google_compute_subnetwork.spark_subnet.id
-    access_config {
-
-    }
+    access_config {}
   }
 
   tags = ["spark"]
@@ -147,18 +149,12 @@ resource "google_compute_instance" "worker_1" {
     enable-oslogin = "TRUE"
     spark-role     = "worker"
   }
-
-  labels = {
-    role    = "worker"
-    cluster = "spark-main"
-  }
-
 }
 
-# Worker2 Instance
-resource "google_compute_instance" "worker_2" {
-  name         = "spark-worker-2"
-  machine_type = var.machine_type
+# Edge Node (Submission Node)
+resource "google_compute_instance" "spark_edge" {
+  name         = "spark-edge"
+  machine_type = "e2-medium" # Can be smaller, but e2-medium is fine
   zone         = var.zone
 
   boot_disk {
@@ -170,22 +166,40 @@ resource "google_compute_instance" "worker_2" {
 
   network_interface {
     subnetwork = google_compute_subnetwork.spark_subnet.id
-    access_config {
+    access_config {}
+  }
 
+  tags = ["spark", "edge-node"]
+
+  metadata = {
+    enable-oslogin = "TRUE"
+    spark-role     = "edge"
+  }
+}
+
+# Storage Node (NFS Server)
+resource "google_compute_instance" "spark_storage" {
+  name         = "spark-storage"
+  machine_type = "e2-medium" # Can be e2-small to save money, but medium is safe
+  zone         = var.zone
+
+  boot_disk {
+    initialize_params {
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
+      size  = 20
     }
+  }
+
+  network_interface {
+    subnetwork = google_compute_subnetwork.spark_subnet.id
+    # We give it a public IP so Ansible can install the NFS server software
+    access_config {}
   }
 
   tags = ["spark"]
 
   metadata = {
     enable-oslogin = "TRUE"
-    spark-role     = "worker"
+    spark-role     = "storage"
   }
-
-  labels = {
-    role    = "worker"
-    cluster = "spark-main"
-  }
-
 }
-

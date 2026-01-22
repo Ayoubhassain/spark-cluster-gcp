@@ -1,0 +1,23 @@
+---
+- name: Install NFS Common
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create mount point
+  ansible.builtin.file:
+    path: /mnt/spark-data
+    state: directory
+    mode: "0777"
+  become: yes
+
+- name: Mount NFS Share
+  ansible.posix.mount:
+    path: /mnt/spark-data
+    src: "{{ hostvars[groups['storage'][0]]['ansible_host'] }}:/data/books"
+    fstype: nfs
+    opts: defaults
+    state: mounted
+  become: yes

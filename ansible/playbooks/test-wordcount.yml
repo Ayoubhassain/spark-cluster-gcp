@@ -1,0 +1,47 @@
+---
+# Playbook: Deploy and Build Java WordCount
+- name: Deploy WordCount Test Suite
+  hosts: edge
+  become: yes
+
+  tasks:
+    - name: Install Maven (for building Java app)
+      ansible.builtin.apt:
+        name: maven
+        state: present
+        update_cache: yes
+
+    - name: Create project directory
+      ansible.builtin.file:
+        path: /home/spark/wordcount-java
+        state: directory
+        owner: spark
+        group: spark
+        mode: "0755"
+
+    - name: Copy Java Project
+      ansible.builtin.copy:
+        src: ../../tests/wordcount-java/
+        dest: /home/spark/wordcount-java/
+        owner: spark
+        group: spark
+        # This recursively copies the src/ and pom.xml
+
+    - name: Build Java Project (Maven)
+      ansible.builtin.command:
+        cmd: mvn clean package
+        chdir: /home/spark/wordcount-java
+      become_user: spark
+      register: maven_build
+
+    - name: Display Build Status
+      ansible.builtin.debug:
+        msg: "Build output: {{ maven_build.stdout_lines[-5:] }}"
+
+    - name: Copy Benchmark script
+      ansible.builtin.copy:
+        src: ../../tests/wordcount/run_benchmark.sh
+        dest: /home/spark/run_benchmark.sh
+        owner: spark
+        group: spark
+        mode: "0755"
